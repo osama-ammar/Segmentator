@@ -1,6 +1,9 @@
-## Sega
-
-- Simple UI for many image segmentation techniques
+# Segmentator
+- Simple Image segmentation app that includes :
+    - UNET for Chest s X-Ray segmentation
+    - Mobile SAM ( a light  version of SAM )
+    - Med SAM (coming soon..)
+    - 3D Segmentation utilities (coming soon..)
 
 ## How to use
 
@@ -9,14 +12,29 @@
 - open http://127.0.0.1:8050/ in browser
 - upload image from local
 
+### using simple chest UNET
+- Drag| upload image
+- click `Show Mask`
+- you will find a mask for this region
+
+![](using-unet.png)
+
+### using Mobile SAM - box prompt
+- select rectangle drawer
+- draw a bbox
+- click `mobile SAM`
+- you will find a mask for this region
+- edit the box and re-click to update the mask
+
+![](using-mobile-sam.png)
 
 ### TODO:
 - [x] view image and mask
 - [x] import images
-- [ ] clean code (remove unneeded code - organize and document)
-- [/] get good layout for portofolio
 - [ ] Handling all images inputs (png , jpg , npy....)
+- [ ] editable mask to control points
 - [ ] mask to control points
+- [ ] include Med SAM
 - [ ] allow multible images segmentation - like annotator
 - [ ] allow 3D segmentation by 3D UNET
 - [ ] allow 3D Medical image segmentation by Med SAM
