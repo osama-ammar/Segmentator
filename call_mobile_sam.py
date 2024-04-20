@@ -6,7 +6,7 @@ import onnxruntime
 
 checkpoint = "weights\\mobile_sam.pt"
 model_type = "vit_t"
-onnx_model_path = "sam_onnx_example.onnx"
+onnx_model_path = "weights\\sam_onnx_example.onnx"
 image = cv2.imread("chest-x-ray.jpeg")
 
 sam = sam_model_registry[model_type](checkpoint=checkpoint)

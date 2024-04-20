@@ -33,7 +33,7 @@ TODO List:
 
 # pathes and configs
 #image_path = "D:\\chest-x-ray.jpeg"
-onnx_model_path = "unet-2v.onnx"
+onnx_model_path = "weights\\unet-2v.onnx"
 mask_trasnsparency = 150
 
 
