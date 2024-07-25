@@ -1,0 +1,15 @@
+dash==2.14.2
+dash_bootstrap_components==1.5.0
+dash_bootstrap_templates==1.1.2
+mobile_sam.egg==info
+numpy==1.23.3
+onnxruntime==1.17.3
+onnxruntime_gpu==1.17.1
+opencv_contrib_python==4.8.0.76
+opencv_contrib_python_headless==4.8.0.76
+opencv_python==4.9.0.80
+opencv_python_headless==4.7.0.72
+Pillow==9.1.0
+Pillow==10.4.0
+plotly==5.18.0
+~pencv_python==4.6.0.66

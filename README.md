@@ -8,6 +8,7 @@
 ## How to use
 
 - download the repo
+- move to project folder and install requirements `pip install requirements.txt`
 - run `python main.py`
 - open http://127.0.0.1:8050/ in browser
 - upload image from local
