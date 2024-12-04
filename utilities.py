@@ -1,9 +1,11 @@
 import numpy as np
+import numpy.typing as npt
 from PIL import Image
 import base64
 import io
 import cv2
 import onnxruntime
+import random
 
 ###########################
 # helper functions
@@ -58,3 +60,67 @@ def show_mask_on_image(input_image, onnx_model_path):
     output_mask = model_inference(onnx_model_path, input_image)
     # print(output_mask.shape)
     return output_mask
+
+
+
+def get_mask_outlines(mask: npt.NDArray) -> npt.NDArray:
+    """given a mask we will get boundary points of this mask  """
+    print(mask.shape)
+    
+    # Convert mask to binary image (0 and 255 values)
+    mask_binary = np.where(mask > 0, 255, 0).astype(np.uint8)
+    # Apply morphological gradient which is the difference between dilation and erosion
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
+    mask_binary= cv2.morphologyEx(mask_binary, cv2.MORPH_GRADIENT, kernel)
+    coordinates = np.where(mask_binary == 255)
+    print(coordinates)
+    x_coordinates , y_coordinates = coordinates
+    points=[]
+    for _ in range(30):
+        # Generate a random index within the range of the coordinates
+        random_index = random.randint(0, len(x_coordinates) - 1)
+        
+        # Retrieve the x and y coordinates at the random index
+        x = x_coordinates[random_index]
+        y = y_coordinates[random_index]
+        
+        # Append the random point to the list
+        points.append((x, y))
+    return points
+
+# converting path points to svg format , it takes path as  string 
+def path_to_svg(path_without_commands):
+    # Split the input string into individual coordinate pairs
+    coordinate_pairs = path_without_commands.split(',')
+    
+    # Initialize an empty string to store the SVG path
+    svg_path = 'M'
+    
+    # Iterate through the coordinate pairs
+    for i, pair in enumerate(coordinate_pairs):
+        # Add 'M' for the first coordinate pair, 'L' for subsequent pairs
+        if i > 0:
+            svg_path += 'L'
+        # Append the coordinate pair to the SVG path
+        svg_path += pair.strip()
+    
+    # Add the 'Z' command to close the path
+    svg_path += 'Z'
+    
+    return svg_path
+
+# converting svg format to path points
+def svg_to_path(svg_path):
+    # Remove the 'M' command and split the string into coordinate pairs
+    coordinate_pairs = svg_path[1:-1].split('L')
+    
+    # Initialize an empty string to store the path without SVG commands
+    path_without_commands = ''
+    
+    # Iterate through the coordinate pairs
+    for pair in coordinate_pairs:
+        # Append the coordinate pair to the path without commands, separated by comma
+        path_without_commands += pair.strip() + ','
+    
+    # Remove the trailing comma and return the path without commands
+    return path_without_commands[:-1]
