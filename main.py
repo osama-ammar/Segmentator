@@ -14,6 +14,8 @@ from call_mobile_sam import onnx_process_image
 from call_efficient_sam import run_efficient_sam
 from utilities import *
 
+from dash_canvas import DashCanvas
+
 # selecting a style
 load_figure_template("SUPERHERO")
 
@@ -24,11 +26,15 @@ onnx_model_path = "weights\\unet-2v.onnx"
 MASK_TRANSPARENCY = 200
 
 
+filename = 'https://raw.githubusercontent.com/plotly/datasets/master/mitochondria.jpg'
+
+
+
 ###########################
 # Define Dash app
 ###########################
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])
-
+app.config.suppress_callback_exceptions = True
 config = {
     "modeBarButtonsToAdd": [
         "drawline",
@@ -63,9 +69,20 @@ def blank_figure():
     return fig
 
 
+def create_button(label, button_id, color):
+    return dbc.Button(
+        label,
+        id=button_id,
+        color=color,
+        size="sm",  # Smaller button
+        className="rounded-button me-2 mt-3",  # Custom class for rounded styling
+        n_clicks=0,
+        style={"borderRadius": "12px", "padding": "5px 15px"},  # Inline rounded and smaller padding
+    )
+    
 image_card = dbc.Card(
     [
-        dbc.CardHeader("X-Ray Image"),
+        dbc.CardHeader("Input Image"),
         dbc.CardBody(
             [
                 dcc.Graph(
@@ -75,35 +92,20 @@ image_card = dbc.Card(
                     style={
                         "width": "100%",
                         "height": "100%",
-                        "margin": "5px",
+                        "margin": "auto",
                         "display": "block",
-                    },  # Center the image
+                    },
                     config=config,  # Enable shape editing
                 ),
+
+
+                create_button("Show Mask", "show-mask-button", "primary"),  # Add right margin
+                create_button("Mobile SAM", "use-mob-sam", "success"),      # Add right margin
+                create_button("Efficient SAM", "use-eff-sam", "info"),                     # No margin needed on the last button
             ]
         ),
-        ###########################################################
-        dbc.Button(
-            "Show Mask",
-            id="show-mask-button",
-            color="primary",
-            className="mr-1",
-            n_clicks=0,
-        ),
-        dbc.Button(
-            "Mobile SAM",
-            id="use-mob-sam",
-            color="secondary",
-            className="mr-1",
-            n_clicks=0,
-        ),
-        dbc.Button(
-            "Efficient SAM",
-            id="use-eff-sam",
-            color="primary",
-            className="mr-1",
-            n_clicks=0,
-        ),
+
+
         ############################################################
         dbc.CardFooter(
             [
@@ -128,10 +130,23 @@ image_card = dbc.Card(
                 "textAlign": "center",
                 "margin": "10px",
             },
-            # Allow multiple files to be uploaded
+            # Allow multiple files to be uploade
             multiple=True,
+            
         ),
-        html.Div(id="output-image-upload"),
+
+        dbc.CardFooter(
+            id="canava-image",
+            children=html.Div([
+            DashCanvas(id='canvaas_image',
+                    tool='line',
+                    lineWidth=50,
+                    lineColor='red',
+                    filename=filename,
+                    width=600)])
+
+        ),
+        
     ],
     # Set card width to 100% and height to 100vh (viewport height)
     style={"width": "100%", "height": "auto", "margin": "auto"},
@@ -141,7 +156,7 @@ image_card = dbc.Card(
 # Define the mask card layout
 mask_image_card = dbc.Card(
     [
-        dbc.CardHeader("X-Ray mask"),
+        dbc.CardHeader("Image with mask"),
         dbc.CardBody(
             [
                 dcc.Graph(
@@ -156,13 +171,9 @@ mask_image_card = dbc.Card(
                         "display": "block",
                     },
                 ),
-                dbc.Button(
-                    "#Print Annotations",
-                    id="#print-annotation",
-                    color="primary",
-                    className="mr-1",
-                    n_clicks=0,
-                ),
+  
+                create_button("Show Annotation info", "#print-annotation", "info"),
+                
                 # Hidden div to store annotations data
                 html.Div(id="annotations-data", style={"display": "none"}),
                 html.Div(id="#print-output"),
@@ -189,8 +200,12 @@ mask_image_card = dbc.Card(
 ####################
 app.layout = html.Div(
     [
-        dbc.Row([dbc.Col(image_card, width=5), dbc.Col(mask_image_card, width=5)]),
-    ]
+        dbc.Row(
+            [dbc.Col(image_card, width=5), dbc.Col(mask_image_card, width=5)],
+            justify="center",  # This will center the columns horizontally
+            style={"margin": "auto", "padding": "20px"},  # Optional padding for better spacing         
+            ),
+    ], 
 )
 
 
@@ -329,6 +344,7 @@ def show_mob_sam_mask(n_clicks, current_figure, relayout_data):
             input_label=input_label,
         )
 
+        output_masks=mask_to_edge(output_masks)
         # blending image and mask
         combined_data = combined_image_mask(
             output_masks, input_image, mode="Mobile_SAM", transperency=MASK_TRANSPARENCY
@@ -386,7 +402,7 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
                 max(x1, x2),
                 max(y1, y2),
             ]
-            input_box = torch.tensor([[[[x1, y1], [x2, y2]]]])
+            input_box = torch.tensor([[[[min_x, min_y],[ max_x, max_y]]]])
 
         # 'z' key here carries image info in plotly dash figure
         if "z" in current_figure["data"][0].keys():
@@ -402,6 +418,7 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
             )
 
         output_masks = run_efficient_sam(input_image, input_box)
+        output_masks=mask_to_edge(output_masks)
 
         # blending image and mask
         combined_data = combined_image_mask(
