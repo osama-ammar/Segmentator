@@ -9,7 +9,9 @@ import plotly.express as px
 import json
 import numpy as np
 from PIL import Image
+import torch
 from call_mobile_sam import onnx_process_image
+from call_efficient_sam import run_efficient_sam
 from utilities import *
 
 # selecting a style
@@ -89,7 +91,18 @@ image_card = dbc.Card(
             n_clicks=0,
         ),
         dbc.Button(
-            "Mobile SAM", id="use-sam", color="secondary", className="mr-1", n_clicks=0
+            "Mobile SAM",
+            id="use-mob-sam",
+            color="secondary",
+            className="mr-1",
+            n_clicks=0,
+        ),
+        dbc.Button(
+            "Efficient SAM",
+            id="use-eff-sam",
+            color="primary",
+            className="mr-1",
+            n_clicks=0,
         ),
         ############################################################
         dbc.CardFooter(
@@ -254,12 +267,12 @@ def update_mask_overlay(n_clicks, current_figure):
 
 # Callback to use mobile SAM model for segmentation with Box prompt
 @app.callback(
-    Output("mask_image_id", "figure"),
-    [Input("use-sam", "n_clicks")],
+    Output("mask_image_id", "figure", allow_duplicate=True),
+    [Input("use-mob-sam", "n_clicks")],
     [State("input_image_id", "figure"), State("input_image_id", "relayoutData")],
     prevent_initial_call=True,
 )
-def show_sam_mask(n_clicks, current_figure, relayout_data):
+def show_mob_sam_mask(n_clicks, current_figure, relayout_data):
     # default values for mobile SAM point and boxes
 
     if n_clicks > 0:
@@ -301,12 +314,6 @@ def show_sam_mask(n_clicks, current_figure, relayout_data):
             # print("using normal image ")
             # mostly one channel images in a list format
             input_image = image_1d_to_2d(current_figure["data"][0]["z"])
-            output_masks = onnx_process_image(
-                input_image.astype(np.float32),
-                input_point,
-                input_box=input_box,
-                input_label=input_label,
-            )
 
         else:
             # print("using 64-encoded image ")
@@ -315,16 +322,90 @@ def show_sam_mask(n_clicks, current_figure, relayout_data):
                 current_figure["data"][0]["source"][22:-1] + "="
             )
 
-            output_masks = onnx_process_image(
-                input_image.astype(np.float32),
-                input_point,
-                input_box=input_box,
-                input_label=input_label,
-            )
+        output_masks = onnx_process_image(
+            input_image.astype(np.float32),
+            input_point,
+            input_box=input_box,
+            input_label=input_label,
+        )
 
         # blending image and mask
         combined_data = combined_image_mask(
             output_masks, input_image, mode="Mobile_SAM", transperency=MASK_TRANSPARENCY
+        )
+
+        updated_figure = px.imshow(
+            combined_data,
+            zmin=0,
+            zmax=255,
+            color_continuous_scale="green",  # Example color scale
+        )
+
+        return updated_figure
+
+
+# Callback to use Efficient SAM model for segmentation with Box prompt
+@app.callback(
+    Output("mask_image_id", "figure", allow_duplicate=True),
+    [Input("use-eff-sam", "n_clicks")],
+    [State("input_image_id", "figure"), State("input_image_id", "relayoutData")],
+    prevent_initial_call=True,
+)
+def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
+    # default values for mobile SAM point and boxes
+
+    if n_clicks > 0:
+        input_point = np.array([[300, 350]])
+        input_box = np.array([200, 200, 300, 300])
+        input_label = np.array([1])
+
+        # check if shape is drawn
+        if relayout_data != None and "shapes" in relayout_data:
+            [x1, x2, y1, y2] = [
+                relayout_data["shapes"][0]["x0"],
+                relayout_data["shapes"][0]["y0"],
+                relayout_data["shapes"][0]["x1"],
+                relayout_data["shapes"][0]["y1"],
+            ]
+            input_point = np.array([[x1, y1]]).astype(np.int32)
+            [min_x, min_y, max_x, max_y] = [
+                min(x1, x2),
+                min(y1, y2),
+                max(x1, x2),
+                max(y1, y2),
+            ]
+            input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
+
+        # check if shape is updated
+        if relayout_data != None and "shapes[0].x0" in relayout_data:
+            [x1, x2, y1, y2] = relayout_data.values()
+            input_point = np.array([[x1, y1]]).astype(np.int32)
+            [min_x, min_y, max_x, max_y] = [
+                min(x1, x2),
+                min(y1, y2),
+                max(x1, x2),
+                max(y1, y2),
+            ]
+            input_box = torch.tensor([[[[x1, y1], [x2, y2]]]])
+
+        # 'z' key here carries image info in plotly dash figure
+        if "z" in current_figure["data"][0].keys():
+            # print("using normal image ")
+            # mostly one channel images in a list format
+            input_image = image_1d_to_2d(current_figure["data"][0]["z"])
+
+        else:
+            # print("using 64-encoded image ")
+            # to pad encoded string .. making it divisible by 4
+            input_image = base64_to_array(
+                current_figure["data"][0]["source"][22:-1] + "="
+            )
+
+        output_masks = run_efficient_sam(input_image, input_box)
+
+        # blending image and mask
+        combined_data = combined_image_mask(
+            output_masks, input_image, mode="eff-sam", transperency=MASK_TRANSPARENCY
         )
 
         updated_figure = px.imshow(

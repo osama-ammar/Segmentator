@@ -70,7 +70,6 @@ def show_mask_on_image(input_image, onnx_model_path):
 def combined_image_mask(output_mask, image, mode, transperency=150):
     # preprocessing according to output
     if mode == "UNET":
-        # print(f"input_image : {input_image.shape} , {output_mask.shape}")
         output_mask = output_mask.reshape(
             (2, 512, 512)
         )  # (1, 2, 512, 512) ---> (2, 512, 512)
@@ -84,9 +83,11 @@ def combined_image_mask(output_mask, image, mode, transperency=150):
         output_mask = np.argmax(output_mask, axis=0)  # (1, 2, 512, 512) ---> (512, 512)
 
     if mode == "Mobile_SAM":
-        output_mask = output_mask.reshape(
-            output_mask.shape[2], output_mask.shape[3]
-        )  # * color.reshape(1, 1, -1)
+
+        output_mask = output_mask.reshape(output_mask.shape[2], output_mask.shape[3])
+
+    else:
+        print(f"using efficient SAM")
 
     # SAVE MASK HERE
     alpha = output_mask * transperency  # Adjust trasnsparency level

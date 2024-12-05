@@ -8,9 +8,11 @@
 ## How to use
 
 - download the repo
+- install requirements
 - run `python main.py`
 - open http://127.0.0.1:8050/ in browser
 - upload image from local
+- to use efficient net , download its repo ( it will be neglected by .gitignore don't worry)
 
 ### using simple chest UNET
 - Drag| upload image
