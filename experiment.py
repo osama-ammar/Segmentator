@@ -17,6 +17,9 @@ edges = cv2.Canny(gray_image, threshold1=100, threshold2=250)
 
 # Find contours from edges
 contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+contours = [cnt for cnt in contours if cv2.contourArea(cnt) > 30]  # Example threshold: 500
+
+
 
 # Create a blank image to visualize contours
 contour_image = np.zeros_like(image)

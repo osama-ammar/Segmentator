@@ -13,9 +13,15 @@ import torch
 from call_mobile_sam import onnx_process_image
 from call_efficient_sam import run_efficient_sam
 from utilities import *
-
+import cv2
 from dash_canvas import DashCanvas
+import threading
+"""
+NOTES
+======
+- no of inputs + states in call back function should = no of arguments
 
+"""
 # selecting a style
 load_figure_template("SUPERHERO")
 
@@ -24,10 +30,11 @@ load_figure_template("SUPERHERO")
 # image_path = "D:\\chest-x-ray.jpeg"
 onnx_model_path = "weights\\unet-2v.onnx"
 MASK_TRANSPARENCY = 200
+mask_corners=0
 
 
-filename = 'https://raw.githubusercontent.com/plotly/datasets/master/mitochondria.jpg'
-
+brush_mask=0
+lock=threading.Lock() #A lock is a synchronization primitive that allows only one thread to execute a block of code at a time, while other threads must wait for the lock to be released.
 
 
 ###########################
@@ -35,6 +42,7 @@ filename = 'https://raw.githubusercontent.com/plotly/datasets/master/mitochondri
 ###########################
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])
 app.config.suppress_callback_exceptions = True
+app.config.prevent_initial_callbacks = 'initial_duplicate'
 config = {
     "modeBarButtonsToAdd": [
         "drawline",
@@ -46,6 +54,12 @@ config = {
     ],
     "displaylogo": False,
 }
+
+# Helper function to encode an image in base64 format
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        encoded_image = base64.b64encode(image_file.read()).decode()
+        return f"data:image/jpeg;base64,{encoded_image}"
 
 
 # to be used as default shape in case no segmentation is done
@@ -139,14 +153,24 @@ image_card = dbc.Card(
             id="canava-image",
             children=html.Div([
             DashCanvas(id='canvaas_image',
-                    tool='line',
-                    lineWidth=50,
+                    lineWidth=10,
                     lineColor='red',
-                    filename=filename,
-                    width=600)])
+                    filename=encode_image('dental.jpg'),
+                    width=235,         # Match canvas width to image width
+                    height=215,       # Match canvas height to image height
+                    goButtonTitle="Save",
+                    tool='draw',                    
+                    
+                    )])
 
         ),
-        
+            # Button to trigger mask processing
+            html.Button("Process Mask", id="process-btn", n_clicks=0),
+
+            # Output display
+            html.Div(id='output-data', style={"marginTop": "20px", "textAlign": "center"}),
+
+
     ],
     # Set card width to 100% and height to 100vh (viewport height)
     style={"width": "100%", "height": "auto", "margin": "auto"},
@@ -212,7 +236,70 @@ app.layout = html.Div(
 #############
 # Callbacks
 ##############
+# Callback to process and retrieve mask data
+@app.callback(
+    Output('canvaas_image', 'image_content'),#, allow_duplicate=True),
+    #Output("canvaas_image", "image_content"),
+    Input('process-btn', 'n_clicks'),
+    Input('canvaas_image', 'json_data'),
+    prevent_initial_call=True,
 
+)
+def brush_to_mask(n_clicks, json_data):
+    mask_corners = [70, 70, 300, 300]
+    
+    if n_clicks > 0 and json_data:
+        # Parse the JSON data from DashCanvas
+        data = json.loads(json_data)
+        input_image_64 = data['objects'][0]['src']
+        input_image_64=input_image_64.split(",")[1]+"="
+        global brush_mask
+        # Iterate over paths in the JSON data
+        for shape in data['objects']:
+
+            if shape['type'] == 'path':  # Check if the object is a path
+                #print(input_image_64)
+                
+                path = shape['path']
+                x_points = []
+                y_points = []
+                for cmd in path:
+                    # getting start , in between , end  points in the mask
+                    if cmd[0] in ['M',"Q", 'L']:  # Move or Line commands
+                        x, y = cmd[1], cmd[2]
+                        x_points.append(int(x))
+                        y_points.append(int(y))
+                        
+                # get min and max corner
+                min_x , max_x = min(x_points) , max(x_points)
+                min_y , max_y = min(y_points) , max(y_points)
+                mask_corners = [min_x, min_y, max_x, max_y]
+
+                input_image = base64_to_array(input_image_64)
+                
+                # print(f"brush image shape : {input_image.shape}")
+                # print(f"mask_corners : {mask_corners} ,{y_points}")
+                
+                input_box = np.array(mask_corners).astype(np.int32)
+
+                output_masks = run_efficient_sam(input_image, input_box)
+                #output_masks=mask_to_edge(output_masks)
+
+                #with lock: # Ensures only one thread can modify the global var at a time
+                brush_mask =np.logical_or(brush_mask, output_masks).astype(np.uint8)
+                print(f"brush_mask shape input {brush_mask.shape} , {np.max(brush_mask)}")
+                
+                    
+                # blending image and mask
+                combined_data = combined_image_mask(
+                    brush_mask, input_image, mode="eff-sam", transperency=MASK_TRANSPARENCY
+                )
+                print(f"efficient sam shape output {combined_data.shape} , {np.max(combined_data)}")
+                
+                encoded_combined_data = numpy_to_base64_image(combined_data)
+
+
+                return encoded_combined_data
 
 # Define callback to #print shapes(rectangles , lassos...) when the button is clicked
 @app.callback(
@@ -242,7 +329,7 @@ def get_annotations_data(relayout_data, n_clicks):
     [State("input_image_id", "figure")],
     prevent_initial_call="initial_duplicate",
 )
-def update_mask_overlay(n_clicks, current_figure):
+def show_chest_UNET(n_clicks, current_figure):
     if n_clicks > 0:
         # images in plotly dash figure in ~ 2 formats as follows ....1D format or 64-encoded (image encoded as text)
         if "z" in current_figure["data"][0].keys():
@@ -304,25 +391,20 @@ def show_mob_sam_mask(n_clicks, current_figure, relayout_data):
                 relayout_data["shapes"][0]["y1"],
             ]
             input_point = np.array([[x1, y1]]).astype(np.int32)
-            [min_x, min_y, max_x, max_y] = [
-                min(x1, x2),
-                min(y1, y2),
-                max(x1, x2),
-                max(y1, y2),
-            ]
-            input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
 
         # check if shape is updated
         if relayout_data != None and "shapes[0].x0" in relayout_data:
             [x1, x2, y1, y2] = relayout_data.values()
             input_point = np.array([[x1, y1]]).astype(np.int32)
-            [min_x, min_y, max_x, max_y] = [
-                min(x1, x2),
-                min(y1, y2),
-                max(x1, x2),
-                max(y1, y2),
-            ]
-            input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
+            
+            
+        [min_x, min_y, max_x, max_y] = [
+            min(x1, x2),
+            min(y1, y2),
+            max(x1, x2),
+            max(y1, y2),
+        ]
+        input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
 
         # 'z' key here carries image info in plotly dash figure
         if "z" in current_figure["data"][0].keys():
@@ -331,6 +413,7 @@ def show_mob_sam_mask(n_clicks, current_figure, relayout_data):
             input_image = image_1d_to_2d(current_figure["data"][0]["z"])
 
         else:
+            #print(current_figure["data"][0]["source"][22:-1] + "=")
             # print("using 64-encoded image ")
             # to pad encoded string .. making it divisible by 4
             input_image = base64_to_array(
@@ -371,42 +454,33 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
     # default values for mobile SAM point and boxes
 
     if n_clicks > 0:
-        input_point = np.array([[300, 350]])
         input_box = np.array([200, 200, 300, 300])
-        input_label = np.array([1])
-
         # check if shape is drawn
-        if relayout_data != None and "shapes" in relayout_data:
+        if relayout_data != None and "shapes" in relayout_data: 
             [x1, x2, y1, y2] = [
                 relayout_data["shapes"][0]["x0"],
                 relayout_data["shapes"][0]["y0"],
                 relayout_data["shapes"][0]["x1"],
                 relayout_data["shapes"][0]["y1"],
             ]
-            input_point = np.array([[x1, y1]]).astype(np.int32)
-            [min_x, min_y, max_x, max_y] = [
-                min(x1, x2),
-                min(y1, y2),
-                max(x1, x2),
-                max(y1, y2),
-            ]
-            input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
 
         # check if shape is updated
         if relayout_data != None and "shapes[0].x0" in relayout_data:
             [x1, x2, y1, y2] = relayout_data.values()
-            input_point = np.array([[x1, y1]]).astype(np.int32)
-            [min_x, min_y, max_x, max_y] = [
-                min(x1, x2),
-                min(y1, y2),
-                max(x1, x2),
-                max(y1, y2),
-            ]
-            input_box = torch.tensor([[[[min_x, min_y],[ max_x, max_y]]]])
+
+
+
+        [min_x, min_y, max_x, max_y] = [
+            min(x1, x2),
+            min(y1, y2),
+            max(x1, x2),
+            max(y1, y2),
+        ]
+        input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
+
 
         # 'z' key here carries image info in plotly dash figure
         if "z" in current_figure["data"][0].keys():
-            # print("using normal image ")
             # mostly one channel images in a list format
             input_image = image_1d_to_2d(current_figure["data"][0]["z"])
 
@@ -424,7 +498,7 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
         combined_data = combined_image_mask(
             output_masks, input_image, mode="eff-sam", transperency=MASK_TRANSPARENCY
         )
-
+        print("combined_data ........................................ ")
         updated_figure = px.imshow(
             combined_data,
             zmin=0,
@@ -446,7 +520,7 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
 def upload_image(list_of_contents, current_figure):
     if list_of_contents is not None:
         _, base64_string = list_of_contents[0].split(",")
-        image = base64_to_array(base64_string, shape=(512, 512))
+        image = base64_to_array(base64_string)#, shape=(512, 512))
         # print(image.shape)
 
         updated_figure = px.imshow(

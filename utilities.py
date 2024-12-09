@@ -17,6 +17,13 @@ def base64_to_array(base64_string, shape=None):
         print("decoding image with resize ")
     return np.array(image_data)
 
+def numpy_to_base64_image(numpy_image):
+    # Convert NumPy array to image (OpenCV style)
+    _, buffer = cv2.imencode('.png', numpy_image)
+    # Convert to base64 encoding
+    base64_image = base64.b64encode(buffer).decode('utf-8')
+    return f"data:image/png;base64,{base64_image}"
+
 
 def image_1d_to_2d(image_1d):
     input_image = np.array(image_1d).reshape(512, 512)
@@ -68,7 +75,7 @@ def show_mask_on_image(input_image, onnx_model_path):
 
 def mask_to_edge(mask):
     # Dilate the binary mask
-    dilated_mask = binary_dilation(mask,iterations=7)
+    dilated_mask = binary_dilation(mask,iterations=5)
 
     # Subtract the original mask to get edges
     edges = dilated_mask.astype(np.uint8) - mask

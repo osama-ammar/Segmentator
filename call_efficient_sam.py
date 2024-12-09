@@ -27,9 +27,13 @@ with zipfile.ZipFile("D:/Code_store/segmentator/Segmentator/EfficientSAM/weights
 # models['squeeze_sam'] = build_squeeze_sam()
 bbox_cordinates = torch.tensor([[[[580, 350], [650, 350]]]])
 
-sample_image_np = np.array(Image.open("chest-x-ray-2.jpg"))
-print(f"efficient sam shape input {sample_image_np.shape}")
 def run_efficient_sam(sample_image_np, bbox_cordinates):
+    
+    # when updating the image or accumelate masks  , result image become [x,y,4] 3 for rgb and 1 for transperency  ,  when this image enter the model again the model will be sad with transperency
+    if sample_image_np.shape[2]>3:
+        sample_image_np=sample_image_np[:,:,0:3]
+    print(f"efficient sam shape input {sample_image_np.shape} , {np.max(sample_image_np)}")
+        
     # load an image
     sample_image_tensor = transforms.ToTensor()(sample_image_np)
     # Feed a few (x,y) points in the mask as input.
@@ -37,14 +41,12 @@ def run_efficient_sam(sample_image_np, bbox_cordinates):
     
     pts_labels = np.array([2,3])
     pts_labels = torch.reshape(torch.tensor(pts_labels), [1, 1, -1])
-    print(bbox_cordinates)
+
 
     # Run inference for both EfficientSAM-Ti and EfficientSAM-S models.
     efficient_sam_model = models["efficientsam_ti"]
     model_name = "efficientsam_ti"
 
-
-    print("Running inference using ", model_name)
     predicted_logits, predicted_iou = efficient_sam_model(
         sample_image_tensor[None, ...],
         bbox_cordinates,
@@ -62,9 +64,9 @@ def run_efficient_sam(sample_image_np, bbox_cordinates):
     # For this demo we use the first mask.
     mask = torch.ge(predicted_logits[0, 0, 0, :, :], 0).cpu().detach().numpy()
     masked_image_np = sample_image_np.copy().astype(np.uint8) * mask[:, :, None]
-    print(f"efficient sam shape output {mask.shape}")
+    #print(f"efficient sam shape output {mask.shape}")
     
-    Image.fromarray(masked_image_np).save(f"dogs_{model_name}_mask.png")
+    Image.fromarray(masked_image_np).save(f"output_{model_name}_mask.png")
     return mask
 
 
