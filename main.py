@@ -154,13 +154,13 @@ image_card = dbc.Card(
             children=html.Div([
             DashCanvas(id='canvaas_image',
                     lineWidth=10,
-                    lineColor='red',
+                    lineColor='rgba(0, 255, 0, 0.7)',
                     filename=encode_image('dental.jpg'),
                     width=235,         # Match canvas width to image width
                     height=215,       # Match canvas height to image height
                     goButtonTitle="Save",
-                    tool='draw',                    
-                    
+                    tool='draw', 
+                    hide_buttons =["zoom", "pan", "line","rectangle", "undo", "select"] ,                  
                     )])
 
         ),
