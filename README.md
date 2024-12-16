@@ -2,7 +2,7 @@
 - Simple Image segmentation app that includes :
     - UNET for Chest s X-Ray segmentation
     - Mobile SAM ( a light  version of SAM )
-    - Med SAM (coming soon..)
+    - Efficient SAM (more accurate and faster)
     - 3D Segmentation utilities (coming soon..)
 
 ## How to use
