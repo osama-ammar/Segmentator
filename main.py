@@ -9,16 +9,14 @@ import plotly.express as px
 import json
 import numpy as np
 from PIL import Image
-<<<<<<< HEAD
-=======
 import torch
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
 from call_mobile_sam import onnx_process_image
 from call_efficient_sam import run_efficient_sam
 from utilities import *
 import cv2
 from dash_canvas import DashCanvas
 import threading
+
 """
 NOTES
 ======
@@ -27,19 +25,13 @@ NOTES
 """
 # selecting a style
 load_figure_template("SUPERHERO")
-<<<<<<< HEAD
-
-
-
-# pathes and configs
-# image_path = "D:\\chest-x-ray.jpeg"
-=======
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
 onnx_model_path = "weights\\unet-2v.onnx"
 MASK_TRANSPARENCY = 200
-mask_corners=0
-brush_mask=0
-lock=threading.Lock() #A lock is a synchronization primitive that allows only one thread to execute a block of code at a time, while other threads must wait for the lock to be released.
+mask_corners = 0
+brush_mask = 0
+lock = (
+    threading.Lock()
+)  # A lock is a synchronization primitive that allows only one thread to execute a block of code at a time, while other threads must wait for the lock to be released.
 
 
 ###########################
@@ -47,7 +39,7 @@ lock=threading.Lock() #A lock is a synchronization primitive that allows only on
 ###########################
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])
 app.config.suppress_callback_exceptions = True
-app.config.prevent_initial_callbacks = 'initial_duplicate'
+app.config.prevent_initial_callbacks = "initial_duplicate"
 config = {
     "modeBarButtonsToAdd": [
         "drawline",
@@ -59,7 +51,6 @@ config = {
     ],
     "displaylogo": False,
 }
-
 
 
 # Helper function to encode an image in base64 format
@@ -83,16 +74,13 @@ def blank_figure():
     fig.update_layout(
         template=None,
         width=600,  # Set width to image width
-<<<<<<< HEAD
-        height=500,  # Set height to image height
-=======
         height=500,  # Set height to image height,
         dragmode="drawrect",
-        newshape=dict(fillcolor="cyan", opacity=0.3, line=dict(color="darkblue", width=5)),
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
+        newshape=dict(
+            fillcolor="cyan", opacity=0.3, line=dict(color="darkblue", width=5)
+        ),
     )
     fig.layout.autosize = True
-    
 
     return fig
 
@@ -105,16 +93,16 @@ def create_button(label, button_id, color):
         size="sm",  # Smaller button
         className="rounded-button me-2 mt-3",  # Custom class for rounded styling
         n_clicks=0,
-        style={"borderRadius": "12px", "padding": "5px 15px"},  # Inline rounded and smaller padding
+        style={
+            "borderRadius": "12px",
+            "padding": "5px 15px",
+        },  # Inline rounded and smaller padding
     )
-    
+
+
 image_card = dbc.Card(
     [
-<<<<<<< HEAD
-        dbc.CardHeader("X-Ray Image"),
-=======
         dbc.CardHeader("Input Image"),
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
         dbc.CardBody(
             [
                 dcc.Graph(
@@ -124,41 +112,22 @@ image_card = dbc.Card(
                     style={
                         "width": "100%",
                         "height": "100%",
-<<<<<<< HEAD
-                        "margin": "5px",
-                        "display": "block",
-                    },  # Center the image
-                    config=config,  # Enable shape editing
-                ),
-            ]
-        ),
-        ###########################################################
-        dbc.Button(
-            "Show Mask",
-            id="show-mask-button",
-            color="primary",
-            className="mr-1",
-            n_clicks=0,
-        ),
-        dbc.Button(
-            "Mobile SAM", id="use-sam", color="secondary", className="mr-1", n_clicks=0
-        ),
-=======
                         "margin": "auto",
                         "display": "block",
                     },
                     config=config,  # Enable shape editing
                 ),
-
-
-                create_button("Show Mask", "show-mask-button", "primary"),  # Add right margin
-                create_button("Mobile SAM", "use-mob-sam", "success"),      # Add right margin
-                create_button("Efficient SAM", "use-eff-sam", "info"),                     # No margin needed on the last button
+                create_button(
+                    "Show Mask", "show-mask-button", "primary"
+                ),  # Add right margin
+                create_button(
+                    "Mobile SAM", "use-mob-sam", "success"
+                ),  # Add right margin
+                create_button(
+                    "Efficient SAM", "use-eff-sam", "info"
+                ),  # No margin needed on the last button
             ]
         ),
-
-
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
         ############################################################
         dbc.CardFooter(
             [
@@ -183,40 +152,38 @@ image_card = dbc.Card(
                 "textAlign": "center",
                 "margin": "10px",
             },
-<<<<<<< HEAD
-            # Allow multiple files to be uploaded
-            multiple=True,
-        ),
-        html.Div(id="output-image-upload"),
-=======
             # Allow multiple files to be uploade
             multiple=True,
-            
         ),
-
         dbc.CardFooter(
             id="canava-image",
-            children=html.Div([
-            DashCanvas(id='canvaas_image',
-                    lineWidth=10,
-                    lineColor='rgba(0, 255, 0, 0.7)',
-                    filename=encode_image('dental.jpg'),
-                    width=235,         # Match canvas width to image width
-                    height=215,       # Match canvas height to image height
-                    goButtonTitle="Save",
-                    tool='draw', 
-                    hide_buttons =["zoom", "pan", "line","rectangle", "undo", "select"] ,                  
-                    )])
-
+            children=html.Div(
+                [
+                    DashCanvas(
+                        id="canvaas_image",
+                        lineWidth=10,
+                        lineColor="rgba(0, 255, 0, 0.7)",
+                        filename=encode_image("dental.jpg"),
+                        width=235,  # Match canvas width to image width
+                        height=215,  # Match canvas height to image height
+                        goButtonTitle="Save",
+                        tool="draw",
+                        hide_buttons=[
+                            "zoom",
+                            "pan",
+                            "line",
+                            "rectangle",
+                            "undo",
+                            "select",
+                        ],
+                    )
+                ]
+            ),
         ),
-            # Button to trigger mask processing
-            html.Button("Process Mask", id="process-btn", n_clicks=0),
-
-            # Output display
-            html.Div(id='output-data', style={"marginTop": "20px", "textAlign": "center"}),
-
-
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
+        # Button to trigger mask processing
+        html.Button("Process Mask", id="process-btn", n_clicks=0),
+        # Output display
+        html.Div(id="output-data", style={"marginTop": "20px", "textAlign": "center"}),
     ],
     # Set card width to 100% and height to 100vh (viewport height)
     style={"width": "100%", "height": "auto", "margin": "auto"},
@@ -226,11 +193,7 @@ image_card = dbc.Card(
 # Define the mask card layout
 mask_image_card = dbc.Card(
     [
-<<<<<<< HEAD
-        dbc.CardHeader("X-Ray mask"),
-=======
         dbc.CardHeader("Image with mask"),
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
         dbc.CardBody(
             [
                 dcc.Graph(
@@ -245,19 +208,7 @@ mask_image_card = dbc.Card(
                         "display": "block",
                     },
                 ),
-<<<<<<< HEAD
-                dbc.Button(
-                    "#Print Annotations",
-                    id="#print-annotation",
-                    color="primary",
-                    className="mr-1",
-                    n_clicks=0,
-                ),
-=======
-  
                 create_button("Show Annotation info", "#print-annotation", "info"),
-                
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
                 # Hidden div to store annotations data
                 html.Div(id="annotations-data", style={"display": "none"}),
                 html.Div(id="#print-output"),
@@ -284,17 +235,15 @@ mask_image_card = dbc.Card(
 ####################
 app.layout = html.Div(
     [
-<<<<<<< HEAD
-        dbc.Row([dbc.Col(image_card, width=5), dbc.Col(mask_image_card, width=5)]),
-    ]
-=======
         dbc.Row(
             [dbc.Col(image_card, width=5), dbc.Col(mask_image_card, width=5)],
             justify="center",  # This will center the columns horizontally
-            style={"margin": "auto", "padding": "20px"},  # Optional padding for better spacing         
-            ),
-    ], 
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
+            style={
+                "margin": "auto",
+                "padding": "20px",
+            },  # Optional padding for better spacing
+        ),
+    ],
 )
 
 
@@ -303,66 +252,70 @@ app.layout = html.Div(
 ##############
 # Callback to process and retrieve mask data
 @app.callback(
-    Output('canvaas_image', 'image_content'),#, allow_duplicate=True),
-    #Output("canvaas_image", "image_content"),
-    Input('process-btn', 'n_clicks'),
-    Input('canvaas_image', 'json_data'),
+    Output("canvaas_image", "image_content"),  # , allow_duplicate=True),
+    # Output("canvaas_image", "image_content"),
+    Input("process-btn", "n_clicks"),
+    Input("canvaas_image", "json_data"),
     prevent_initial_call=True,
-
 )
 def brush_to_mask(n_clicks, json_data):
     mask_corners = [70, 70, 300, 300]
-    
+
     if n_clicks > 0 and json_data:
         # Parse the JSON data from DashCanvas
         data = json.loads(json_data)
-        input_image_64 = data['objects'][0]['src']
-        input_image_64=input_image_64.split(",")[1]+"="
+        input_image_64 = data["objects"][0]["src"]
+        input_image_64 = input_image_64.split(",")[1] + "="
         global brush_mask
         # Iterate over paths in the JSON data
-        for shape in data['objects']:
+        for shape in data["objects"]:
 
-            if shape['type'] == 'path':  # Check if the object is a path
-                #print(input_image_64)
-                
-                path = shape['path']
+            if shape["type"] == "path":  # Check if the object is a path
+                # print(input_image_64)
+
+                path = shape["path"]
                 x_points = []
                 y_points = []
                 for cmd in path:
                     # getting start , in between , end  points in the mask
-                    if cmd[0] in ['M',"Q", 'L']:  # Move or Line commands
+                    if cmd[0] in ["M", "Q", "L"]:  # Move or Line commands
                         x, y = cmd[1], cmd[2]
                         x_points.append(int(x))
                         y_points.append(int(y))
-                        
+
                 # get min and max corner
-                min_x , max_x = min(x_points) , max(x_points)
-                min_y , max_y = min(y_points) , max(y_points)
+                min_x, max_x = min(x_points), max(x_points)
+                min_y, max_y = min(y_points), max(y_points)
                 mask_corners = [min_x, min_y, max_x, max_y]
 
                 input_image = base64_to_array(input_image_64)
-                
+
                 # print(f"brush image shape : {input_image.shape}")
                 # print(f"mask_corners : {mask_corners} ,{y_points}")
-                
+
                 input_box = np.array(mask_corners).astype(np.int32)
 
                 output_masks = run_efficient_sam(input_image, input_box)
-                #output_masks=mask_to_edge(output_masks)
+                # output_masks=mask_to_edge(output_masks)
 
-                #with lock: # Ensures only one thread can modify the global var at a time
-                brush_mask =np.logical_or(brush_mask, output_masks).astype(np.uint8)
-                print(f"brush_mask shape input {brush_mask.shape} , {np.max(brush_mask)}")
-                
-                    
+                # with lock: # Ensures only one thread can modify the global var at a time
+                brush_mask = np.logical_or(brush_mask, output_masks).astype(np.uint8)
+                print(
+                    f"brush_mask shape input {brush_mask.shape} , {np.max(brush_mask)}"
+                )
+
                 # blending image and mask
                 combined_data = combined_image_mask(
-                    brush_mask, input_image, mode="eff-sam", transperency=MASK_TRANSPARENCY
+                    brush_mask,
+                    input_image,
+                    mode="eff-sam",
+                    transperency=MASK_TRANSPARENCY,
                 )
-                print(f"efficient sam shape output {combined_data.shape} , {np.max(combined_data)}")
-                
-                encoded_combined_data = numpy_to_base64_image(combined_data)
+                print(
+                    f"efficient sam shape output {combined_data.shape} , {np.max(combined_data)}"
+                )
 
+                encoded_combined_data = numpy_to_base64_image(combined_data)
 
                 return encoded_combined_data
 
@@ -375,9 +328,6 @@ def brush_to_mask(n_clicks, json_data):
 )
 def get_annotations_data(relayout_data, n_clicks):
     if n_clicks > 0:
-        print(relayout_data["shapes"][0]["path"])
-        print(svg_to_path(relayout_data["shapes"][0]["path"]))
-
         if "shapes" in relayout_data:
             output_json = json.dumps(relayout_data["shapes"], indent=2)
             if len(relayout_data["shapes"]) > 0:
@@ -385,11 +335,7 @@ def get_annotations_data(relayout_data, n_clicks):
                     relayout_data["shapes"][0]["x0"],
                     relayout_data["shapes"][0]["y0"],
                 ]
-<<<<<<< HEAD
-
-=======
                 # print([x, y])
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
             return output_json
     else:
         return no_update
@@ -413,26 +359,13 @@ def show_chest_UNET(n_clicks, current_figure):
             )  # (1,2,512, 512)
 
         else:
-<<<<<<< HEAD
-            # print("using 64-encoded image ")
-            # to pad encoded string .. making it divisible by 4
-            input_image = base64_to_array(
-                current_figure["data"][0]["source"][22:-1] + "="
-            )
-            input_image.resize((512, 512, 3), refcheck=False)
-            # Update the figure data with mask overlay
-            output_mask = show_mask_on_image(input_image, onnx_model_path)
-
-        # print(f"input_image : {input_image.shape} , {output_mask.shape}")
-        output_mask = output_mask.reshape((2, 512, 512))
-=======
             print("using 64-encoded image ")
             # to pad encoded string .. making it divisible by 4
             input_image = base64_to_array(
-                current_figure["data"][0]["source"][22:-1] + "=",shape=(512, 512)
+                current_figure["data"][0]["source"][22:-1] + "=", shape=(512, 512)
             )
-            #input_image.resize((512, 512, 3), refcheck=False)
-            
+            # input_image.resize((512, 512, 3), refcheck=False)
+
             # Update the figure data with mask overlay
             output_mask = show_mask_on_image(input_image, onnx_model_path)
 
@@ -441,7 +374,6 @@ def show_chest_UNET(n_clicks, current_figure):
             output_mask, input_image, mode="UNET", transperency=MASK_TRANSPARENCY
         )
         print(combined_data.shape)
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
 
         updated_figure = px.imshow(
             combined_data,
@@ -451,31 +383,6 @@ def show_chest_UNET(n_clicks, current_figure):
             labels={"color": "Heatmap Value"},
         )
 
-<<<<<<< HEAD
-        # Find the index of the maximum value along the specified axis
-        output_mask = np.argmax(output_mask, axis=0)
-        alpha = output_mask * mask_trasnsparency  # Adjust trasnsparency level
-        alpha[alpha == 0] = 255
-
-        # changing only one channel of pixels 0 for red , 1 for green ,  2 for blue
-        # we zeroed 2 channels to make the third stand out ( can be done with better method..)
-        input_image[alpha == mask_trasnsparency, 0] = 0
-        input_image[alpha == mask_trasnsparency, 2] = 0
-        combined_data = np.stack(
-            [input_image[:, :, 0], input_image[:, :, 1], input_image[:, :, 2], alpha],
-            axis=2,
-        )
-        # print(f"combined : {combined_data.shape} ,{input_image.shape} , {output_mask.shape}  ")
-
-        updated_figure = px.imshow(
-            combined_data,
-            zmin=0,
-            zmax=255,
-            color_continuous_scale="green",  # Example color scale
-            labels={"color": "Heatmap Value"},
-        )
-=======
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
         return updated_figure
 
     else:
@@ -484,13 +391,8 @@ def show_chest_UNET(n_clicks, current_figure):
 
 # Callback to use mobile SAM model for segmentation with Box prompt
 @app.callback(
-<<<<<<< HEAD
-    Output("mask_image_id", "figure"),
-    [Input("use-sam", "n_clicks")],
-=======
     Output("mask_image_id", "figure", allow_duplicate=True),
     [Input("use-mob-sam", "n_clicks")],
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
     [State("input_image_id", "figure"), State("input_image_id", "relayoutData")],
     prevent_initial_call=True,
 )
@@ -511,32 +413,12 @@ def show_mob_sam_mask(n_clicks, current_figure, relayout_data):
                 relayout_data["shapes"][0]["y1"],
             ]
             input_point = np.array([[x1, y1]]).astype(np.int32)
-<<<<<<< HEAD
-            [min_x, min_y, max_x, max_y] = [
-                min(x1, x2),
-                min(y1, y2),
-                max(x1, x2),
-                max(y1, y2),
-            ]
-            input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
-=======
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
 
         # check if shape is updated
         if relayout_data != None and "shapes[0].x0" in relayout_data:
             [x1, x2, y1, y2] = relayout_data.values()
             input_point = np.array([[x1, y1]]).astype(np.int32)
-<<<<<<< HEAD
-            [min_x, min_y, max_x, max_y] = [
-                min(x1, x2),
-                min(y1, y2),
-                max(x1, x2),
-                max(y1, y2),
-            ]
-            input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
-=======
-            
-            
+
         [min_x, min_y, max_x, max_y] = [
             min(x1, x2),
             min(y1, y2),
@@ -544,65 +426,21 @@ def show_mob_sam_mask(n_clicks, current_figure, relayout_data):
             max(y1, y2),
         ]
         input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
 
         # 'z' key here carries image info in plotly dash figure
         if "z" in current_figure["data"][0].keys():
             # print("using normal image ")
             # mostly one channel images in a list format
             input_image = image_1d_to_2d(current_figure["data"][0]["z"])
-<<<<<<< HEAD
-            masks = onnx_process_image(
-                input_image.astype(np.float32),
-                input_point,
-                input_box=input_box,
-                input_label=input_label,
-            )
 
         else:
-=======
-
-        else:
-            #print(current_figure["data"][0]["source"][22:-1] + "=")
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
+            # print(current_figure["data"][0]["source"][22:-1] + "=")
             # print("using 64-encoded image ")
             # to pad encoded string .. making it divisible by 4
             input_image = base64_to_array(
                 current_figure["data"][0]["source"][22:-1] + "="
             )
 
-<<<<<<< HEAD
-            masks = onnx_process_image(
-                input_image.astype(np.float32),
-                input_point,
-                input_box=input_box,
-                input_label=input_label,
-            )
-
-        print(masks.shape)
-        color = np.array([255, 0, 0, mask_trasnsparency])
-        masks = masks.reshape(masks.shape[2], masks.shape[3], 1) * color.reshape(
-            1, 1, -1
-        )
-        print(color.reshape(1, 1, -1).shape)
-
-        # masks=np.argmax(masks, axis=2)
-        masks[masks == 0] = 255
-
-        combined_data = np.stack(
-            [
-                input_image[:, :, 0],
-                input_image[:, :, 1],
-                input_image[:, :, 2],
-                masks[:, :, 3],
-            ],
-            axis=2,
-        )
-
-        # print(f"combined : {combined_data.shape} ,{input_image.shape} , {masks.shape},{np.unique(masks)}  ")
-        # print(f" default :point {input_point} , input box {input_box}")
-
-=======
         output_masks = onnx_process_image(
             input_image.astype(np.float32),
             input_point,
@@ -610,33 +448,23 @@ def show_mob_sam_mask(n_clicks, current_figure, relayout_data):
             input_label=input_label,
         )
 
-        output_masks=mask_to_edge(output_masks)
+        output_masks = mask_to_edge(output_masks)
         # blending image and mask
         combined_data = combined_image_mask(
             output_masks, input_image, mode="Mobile_SAM", transperency=MASK_TRANSPARENCY
         )
-        
+
         print(combined_data.shape)
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
         updated_figure = px.imshow(
             combined_data,
             zmin=0,
             zmax=255,
-<<<<<<< HEAD
-        )
-        # mask_points = get_mask_outlines(masks[:, :, 3])
-        # print(mask_points)
-        updated_figure.add_shape(relayout_data["shapes"][0])
-=======
             color_continuous_scale="green",  # Example color scale
         )
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
 
         return updated_figure
 
 
-<<<<<<< HEAD
-=======
 # Callback to use Efficient SAM model for segmentation with Box prompt
 @app.callback(
     Output("mask_image_id", "figure", allow_duplicate=True),
@@ -650,7 +478,7 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
     if n_clicks > 0:
         input_box = np.array([200, 200, 300, 300])
         # check if shape is drawn
-        if relayout_data != None and "shapes" in relayout_data: 
+        if relayout_data != None and "shapes" in relayout_data:
             [x1, x2, y1, y2] = [
                 relayout_data["shapes"][0]["x0"],
                 relayout_data["shapes"][0]["y0"],
@@ -662,8 +490,6 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
         if relayout_data != None and "shapes[0].x0" in relayout_data:
             [x1, x2, y1, y2] = relayout_data.values()
 
-
-
         [min_x, min_y, max_x, max_y] = [
             min(x1, x2),
             min(y1, y2),
@@ -671,7 +497,6 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
             max(y1, y2),
         ]
         input_box = np.array([min_x, min_y, max_x, max_y]).astype(np.int32)
-
 
         # 'z' key here carries image info in plotly dash figure
         if "z" in current_figure["data"][0].keys():
@@ -686,7 +511,7 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
             )
 
         output_masks = run_efficient_sam(input_image, input_box)
-        output_masks=mask_to_edge(output_masks)
+        output_masks = mask_to_edge(output_masks)
 
         # blending image and mask
         combined_data = combined_image_mask(
@@ -694,7 +519,7 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
         )
         print("combined_data ........................................ ")
         print(combined_data.shape)
-        
+
         updated_figure = px.imshow(
             combined_data,
             zmin=0,
@@ -705,7 +530,6 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
         return updated_figure
 
 
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
 # Callback to update figure when uploading new image
 
 
@@ -717,11 +541,7 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
 def upload_image(list_of_contents, current_figure):
     if list_of_contents is not None:
         _, base64_string = list_of_contents[0].split(",")
-<<<<<<< HEAD
-        image = base64_to_array(base64_string, shape=(512, 512))
-=======
-        image = base64_to_array(base64_string)#, shape=(512, 512))
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
+        image = base64_to_array(base64_string)  # , shape=(512, 512))
         # print(image.shape)
 
         updated_figure = px.imshow(
@@ -733,13 +553,12 @@ def upload_image(list_of_contents, current_figure):
             color_continuous_scale="gray",  # Example color scale
             labels={"color": "Heatmap Value"},
         )
-<<<<<<< HEAD
-=======
         updated_figure.update_layout(
             dragmode="drawrect",
-            newshape=dict(fillcolor="cyan", opacity=0.3, line=dict(color="darkblue", width=5)),
+            newshape=dict(
+                fillcolor="cyan", opacity=0.3, line=dict(color="darkblue", width=5)
+            ),
         )
->>>>>>> effe17a4f0c688a13f8773c762cba7c7434a584e
 
         return updated_figure
     else:
