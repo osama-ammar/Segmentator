@@ -74,6 +74,7 @@ def blank_figure():
         width=600,  # Set width to image width
         height=500,  # Set height to image height,
         dragmode="drawrect",
+        newshape=dict(fillcolor="cyan", opacity=0.3, line=dict(color="darkblue", width=5)),
     )
     fig.layout.autosize = True
     

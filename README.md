@@ -33,11 +33,9 @@
 ### TODO:
 - [x] view image and mask
 - [x] import images
-- [ ] Handling all images inputs (png , jpg , npy....)
-- [ ] editable mask to control points
-- [ ] mask to control points
-- [ ] include Med SAM
-- [ ] allow multible images segmentation - like annotator
+- [/] Handling all images inputs (png , jpg , npy....)
+- [x] include Mobile SAM
+- [x] include Efficient SAM
 - [ ] allow 3D segmentation by 3D UNET
 - [ ] allow 3D Medical image segmentation by Med SAM
 - [ ] show 3D segmentation 
