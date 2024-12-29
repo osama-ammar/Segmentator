@@ -24,15 +24,9 @@ NOTES
 """
 # selecting a style
 load_figure_template("SUPERHERO")
-
-
-# pathes and configs
-# image_path = "D:\\chest-x-ray.jpeg"
 onnx_model_path = "weights\\unet-2v.onnx"
 MASK_TRANSPARENCY = 200
 mask_corners=0
-
-
 brush_mask=0
 lock=threading.Lock() #A lock is a synchronization primitive that allows only one thread to execute a block of code at a time, while other threads must wait for the lock to be released.
 
@@ -54,6 +48,8 @@ config = {
     ],
     "displaylogo": False,
 }
+
+
 
 # Helper function to encode an image in base64 format
 def encode_image(image_path):
@@ -79,6 +75,7 @@ def blank_figure():
         height=500,  # Set height to image height
     )
     fig.layout.autosize = True
+    
 
     return fig
 
