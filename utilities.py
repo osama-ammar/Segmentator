@@ -70,7 +70,6 @@ def model_inference(onnx_model_path, input_array):
 def show_mask_on_image(input_image, onnx_model_path):
     input_image = prepare_model_input(input_image)
     output_mask = model_inference(onnx_model_path, input_image)
-    # print(output_mask.shape)
     return output_mask
 
 def mask_to_edge(mask):

@@ -340,12 +340,13 @@ def show_chest_UNET(n_clicks, current_figure):
             )  # (1,2,512, 512)
 
         else:
-            # print("using 64-encoded image ")
+            print("using 64-encoded image ")
             # to pad encoded string .. making it divisible by 4
             input_image = base64_to_array(
-                current_figure["data"][0]["source"][22:-1] + "="
+                current_figure["data"][0]["source"][22:-1] + "=",shape=(512, 512)
             )
-            input_image.resize((512, 512, 3), refcheck=False)
+            #input_image.resize((512, 512, 3), refcheck=False)
+            
             # Update the figure data with mask overlay
             output_mask = show_mask_on_image(input_image, onnx_model_path)
 
@@ -353,6 +354,7 @@ def show_chest_UNET(n_clicks, current_figure):
         combined_data = combined_image_mask(
             output_mask, input_image, mode="UNET", transperency=MASK_TRANSPARENCY
         )
+        print(combined_data.shape)
 
         updated_figure = px.imshow(
             combined_data,
@@ -432,7 +434,8 @@ def show_mob_sam_mask(n_clicks, current_figure, relayout_data):
         combined_data = combined_image_mask(
             output_masks, input_image, mode="Mobile_SAM", transperency=MASK_TRANSPARENCY
         )
-
+        
+        print(combined_data.shape)
         updated_figure = px.imshow(
             combined_data,
             zmin=0,
@@ -499,6 +502,8 @@ def show_eff_sam_mask(n_clicks, current_figure, relayout_data):
             output_masks, input_image, mode="eff-sam", transperency=MASK_TRANSPARENCY
         )
         print("combined_data ........................................ ")
+        print(combined_data.shape)
+        
         updated_figure = px.imshow(
             combined_data,
             zmin=0,
