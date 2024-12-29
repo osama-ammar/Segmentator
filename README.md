@@ -2,16 +2,17 @@
 - Simple Image segmentation app that includes :
     - UNET for Chest s X-Ray segmentation
     - Mobile SAM ( a light  version of SAM )
-    - Med SAM (coming soon..)
+    - Efficient SAM (more accurate and faster)
     - 3D Segmentation utilities (coming soon..)
 
 ## How to use
 
 - download the repo
-- move to project folder and install requirements `pip install requirements.txt`
+- install requirements
 - run `python main.py`
 - open http://127.0.0.1:8050/ in browser
 - upload image from local
+- to use efficient net , download its repo ( it will be neglected by .gitignore don't worry)
 
 ### using simple chest UNET
 - Drag| upload image
@@ -32,11 +33,9 @@
 ### TODO:
 - [x] view image and mask
 - [x] import images
-- [ ] Handling all images inputs (png , jpg , npy....)
-- [ ] editable mask to control points
-- [ ] mask to control points
-- [ ] include Med SAM
-- [ ] allow multible images segmentation - like annotator
+- [/] Handling all images inputs (png , jpg , npy....)
+- [x] include Mobile SAM
+- [x] include Efficient SAM
 - [ ] allow 3D segmentation by 3D UNET
 - [ ] allow 3D Medical image segmentation by Med SAM
 - [ ] show 3D segmentation 
