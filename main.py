@@ -72,7 +72,8 @@ def blank_figure():
     fig.update_layout(
         template=None,
         width=600,  # Set width to image width
-        height=500,  # Set height to image height
+        height=500,  # Set height to image height,
+        dragmode="drawrect",
     )
     fig.layout.autosize = True
     
