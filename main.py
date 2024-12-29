@@ -362,6 +362,7 @@ def show_chest_UNET(n_clicks, current_figure):
             color_continuous_scale="green",  # Example color scale
             labels={"color": "Heatmap Value"},
         )
+
         return updated_figure
 
     else:
@@ -535,6 +536,10 @@ def upload_image(list_of_contents, current_figure):
             # width = image.size[1],
             color_continuous_scale="gray",  # Example color scale
             labels={"color": "Heatmap Value"},
+        )
+        updated_figure.update_layout(
+            dragmode="drawrect",
+            newshape=dict(fillcolor="cyan", opacity=0.3, line=dict(color="darkblue", width=5)),
         )
 
         return updated_figure
